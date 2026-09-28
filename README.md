@@ -1,5 +1,7 @@
 # Die Mikroskop-Laborstation
 
+<img src="Foto_Ralph_Wystup.jpg" align="right" width="140" alt="Prof. Dr.-Ing. Ralph Wystup">
+
 Prof. Dr.-Ing. Ralph Wystup M.Sc. — erstellt mit KI und Agent (Claude Code, Anthropic)
 
 Die Mikroskop-Laborstation: Aufbau, Algorithmen, Fernwartung und KI-Fenster. Ein Manuskript für Studierende.
