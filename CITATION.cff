@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "Wenn Sie diese Arbeit verwenden, zitieren Sie sie bitte wie folgt."
+title: "Automatisch gesteuertes Lichtmikroskop mit KI"
+abstract: "Aufbau, Algorithmen, Fernwartung und ein KI-Fenster — eine Laborstation für Studierende, mit Autofokus und Focus-Stacking im Browser."
+type: software
+authors:
+  - family-names: Wystup
+    given-names: Ralph
+    name-particle: ""
+    name-suffix: "Prof. Dr.-Ing., M.Sc."
+license: MIT
+url: "https://ralphwystup.github.io/Automatisch-gesteuertes-Lichtmikroskop-mit-KI/"
+repository-code: "https://github.com/RalphWystup/Automatisch-gesteuertes-Lichtmikroskop-mit-KI"
+date-released: "2026-09-30"
+keywords:
+  - Mikroskop
+  - Autofokus
+  - Focus-Stacking
+  - OpenCV.js
+  - Laborstation
