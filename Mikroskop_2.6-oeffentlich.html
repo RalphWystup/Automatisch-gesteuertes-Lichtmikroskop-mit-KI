@@ -2,29 +2,6 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<!-- kopfangaben:anfang -->
-<meta name="description" content="Aufbau, Algorithmen, Fernwartung und ein KI-Fenster — eine Laborstation für Studierende, mit Autofokus und Focus-Stacking im Browser.">
-<meta name="author" content="Prof. Dr.-Ing. Ralph Wystup M.Sc.">
-<meta name="keywords" content="Mikroskop, Autofokus, Focus-Stacking, OpenCV.js, Laborstation">
-<link rel="canonical" href="https://ralphwystup.github.io/Automatisch-gesteuertes-Lichtmikroskop-mit-KI/">
-<meta property="og:type" content="article">
-<meta property="og:locale" content="de_DE">
-<meta property="og:site_name" content="Ralph Wystup — Elektrotechnik">
-<meta property="og:title" content="Automatisch gesteuertes Lichtmikroskop mit KI">
-<meta property="og:description" content="Aufbau, Algorithmen, Fernwartung und ein KI-Fenster — eine Laborstation für Studierende, mit Autofokus und Focus-Stacking im Browser.">
-<meta property="og:url" content="https://ralphwystup.github.io/Automatisch-gesteuertes-Lichtmikroskop-mit-KI/Mikroskop_2.5-oeffentlich.html">
-<meta property="og:image" content="https://ralphwystup.github.io/Foto_Ralph_Wystup.jpg">
-<meta name="twitter:card" content="summary">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"TechArticle","headline":"Automatisch gesteuertes Lichtmikroskop mit KI",
- "description":"Aufbau, Algorithmen, Fernwartung und ein KI-Fenster — eine Laborstation für Studierende, mit Autofokus und Focus-Stacking im Browser.","url":"https://ralphwystup.github.io/Automatisch-gesteuertes-Lichtmikroskop-mit-KI/","inLanguage":"de",
- "license":"https://opensource.org/licenses/MIT",
- "author":{"@type":"Person","name":"Prof. Dr.-Ing. Ralph Wystup M.Sc.","url":"https://ralphwystup.github.io/"},
- "publisher":{"@type":"Person","name":"Prof. Dr.-Ing. Ralph Wystup M.Sc."},
- "isPartOf":{"@type":"Collection","name":"Lehr- und Laborarbeiten zur Elektrotechnik","url":"https://ralphwystup.github.io/"},
- "keywords":"Mikroskop, Autofokus, Focus-Stacking, OpenCV.js, Laborstation"}
-</script>
-<!-- kopfangaben:ende -->
 <title>Mikroskop Labor-Station – HTML-Fassung</title>
 <style>
   :root { --bg:#1c2833; --panel:#2c3e50; --panel2:#34495e; --text:#ecf0f1; --dim:#aab7c4; --gruen:#27ae60; --rot:#c0392b; --blau:#2980b9; --gelb:#f1c40f; }
@@ -168,7 +145,7 @@
       <h4>2. Kamera</h4>
       <p>Reiter Bild → „Kameras suchen“, die Mikroskopkamera (HY-2307) wählen, Auflösung wählen, „Kamera starten“. 1280 × 960 ist der Arbeitsstandard (8 Bilder je Sekunde), 640 × 480 läuft mit 30 Bildern je Sekunde.</p>
       <h4>3. Motor</h4>
-      <p>Reiter Tisch → „Motor verbinden“, im Browserfenster den Anschluss des ESP32 (CH340, COM3) wählen. Das Öffnen setzt den ESP32 zurück; danach Nullabgleich (Tisch steht ganz unten) oder „Position bestätigen“, wenn der Tisch dort steht, wo der Zähler es sagt. Die Grenze (Maximum) ist im ESP32 gespeichert; „Grenze hier“ setzt sie neu. Pfeiltasten fahren um die eingestellte Schrittzahl, Stopp hält sofort.</p>
+      <p>Reiter Tisch → „Motor verbinden“, im Browserfenster den Anschluss des ESP32 (CH340, COM3) wählen. Das Öffnen kann den ESP32 zurücksetzen (gemessen 29.10.2026: bei diesem Brett nicht); danach Nullabgleich (Tisch steht ganz unten) oder „Position bestätigen“, wenn der Tisch dort steht, wo der Zähler es sagt. Die Grenze (Maximum) ist im ESP32 gespeichert; „Grenze hier“ setzt sie neu. Pfeiltasten fahren um die eingestellte Schrittzahl, Stopp hält sofort.</p>
       <h4>4. Autofokus</h4>
       <p>Reiter Fokus. Die Schärfe wird auf dem roten Gewebe gemessen (Rahmen im Bild), auf einem von Hand gezogenen Rahmen oder auf dem ganzen Bild. Bereich, grobe und feine Schrittweite einstellen, „Autofokus“ drücken; die Kurve baut sich während des Laufs auf, das Maximum wird angefahren. Vor dem ersten Lauf muss die Motorposition bekannt sein.</p>
       <h4>5. Geneigte Achse</h4>
@@ -325,7 +302,7 @@ if (typeof module !== 'undefined') module.exports = { gramVoll };
 'use strict';
 // ============================================================ Grundlagen
 const $ = id => document.getElementById(id);
-const VERSION = 'Mikroskop HTML 2.5 (2026-09-22, mit OpenCV.js, Flat-Field dauerhaft, Zoom-Ausschnitt vergrößert — öffentliche Fassung ohne KI-Fenster)';
+const VERSION = 'Mikroskop HTML 2.6 (2026-10-29, mit OpenCV.js, Flat-Field dauerhaft, Zoom-Ausschnitt vergrößert; Motorverbindung meldet jetzt belegten Anschluss und fehlende Freigabe — öffentliche Fassung ohne KI-Fenster)';
 const KDEF = { kameraId:'', aufl:'1280x960', jog:50, fokus_start:3900, fokus_ende:4250, fokus_grob:25, fokus_fein:2, ziel:'rot', hand:null,
   drift_x:0, drift_y:0, drift_ref:0, drift_breite:640, drift_an:true, um_pro_px:null, mass_an:true, flat_an:false, rahmen_an:true,
   gram:{s_min:35, delta:4, min_obj:6, refs:[]}, track:{min:40, max:8000, dist:60} };
@@ -449,10 +426,21 @@ async function motorVerbinden(bekannt = false) {
   bekannt = bekannt === true;
   if (!('serial' in navigator)) { meldung('Dieser Browser hat kein Web Serial. Bitte Edge oder Chrome verwenden.', 'fehler', 0); return; }
   try {
-    if (bekannt) { const ports = await navigator.serial.getPorts(); if (!ports.length) return; port = ports[0]; }          // zuletzt erlaubter Anschluss ohne Abfrage
+    if (bekannt) { const ports = await navigator.serial.getPorts();
+      // 29.10.2026: Frueher stand hier nur 'return' — ohne ein Wort. Als Datei geoeffnet kennt der
+      // Browser beim ersten Mal keinen Anschluss, und die Seite sah dann aus wie defekt.
+      if (!ports.length) { meldung('Noch kein Anschluss freigegeben — bitte einmal „Motor verbinden“ drücken und COM3 wählen.', 'info', 0); return; }
+      port = ports[0]; }          // zuletzt erlaubter Anschluss ohne Abfrage
     else port = await navigator.serial.requestPort();
     await port.open({ baudRate: 115200 });
-  } catch (e) { meldung('Anschluss nicht geöffnet: ' + e.message, 'fehler'); port = null; return; }
+  } catch (e) {
+    // 29.10.2026 gemessen: „Failed to open serial port“ heisst nicht defekt, sondern BELEGT —
+    // meist haelt ihn ein zweiter Reiter mit dieser Seite oder ein Python-Programm.
+    const belegt = /failed to open/i.test(e.message || '');
+    meldung(belegt
+      ? 'COM3 ist belegt. Meist hält ihn ein zweiter Reiter mit dieser Seite oder ein Python-Programm. Den anderen schließen, dann „Motor verbinden“.'
+      : 'Anschluss nicht geöffnet: ' + e.message, 'fehler', 0);
+    port = null; return; }
   motorFehler = 0;
   writer = port.writable.getWriter(); motor.verbunden = true; leseSchleife(); log('Motor verbunden (ESP32 startet neu)');
   await sleep(1800); const j = await befehl('GET'); if (j.ok) { statusVonMotor(j); if (!j.pos_bekannt) positionFragen(); }
